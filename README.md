@@ -385,7 +385,9 @@ curl -XPOST
 Response:
 
 ```
-]
+{
+    "Task's status": "SUCCESS"
+}
 ```
 
 ### Retrieve created report `retrieve_report`
