@@ -1,0 +1,46 @@
+version: "3.7"
+
+services:
+  db:
+    image: postgres
+    volumes:
+      - ./data/db:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_NAME=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - 5432
+    restart: always
+
+  redis:
+    image: redis:alpine
+  celery:
+    restart: always
+    build:
+      context: .
+    command: sh -c "cd project &&
+             python -m celery -A project worker"
+    volumes:
+      - ./project/report:/app/project/report
+    depends_on:
+      - db
+      - redis
+      - web
+  web:
+    build: .
+    command: >
+      sh -c "python project/manage.py migrate &&
+             python project/manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - ./project/report:/app/project/report
+
+    restart: always
+    ports:
+      - 8000:8000
+    environment:
+      - POSTGRES_NAME=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    depends_on:
+      - db
